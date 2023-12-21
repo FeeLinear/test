@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+<!-- NSDK -->
+<script src="./lib/sdkSZSE.js"></script>
+<!-- GUI PC端组件 -->
+<script src="./lib/GUIPC.min_base.js"></script>
+<!-- GWeb框架 -->
+<script src="./lib/NWeb.js"></script>
+<!-- 通信桥接文件 -->
+<script src="./lib/GLink_client.js"></script>
+
+
+<body  id='mainBody'>
+    <!-- 设置容器绝对定位 -->
+    <div id="component_container" ref="ddd" style="top: 0px;left: 0px;right: 0px;bottom: 250px;position: absolute;"></div>
+    <!-- 操作区 -->
+    <div id="test"  ref="test">{{message}}</div>
+    <div style="left: 0px;right: 0px;bottom: 0px;height:25px;position: absolute;">
+        <button onclick="setCodeList()">配置股票代码</button>
+        <button onclick="changeWhiteSechme()">切换白色方案</button>
+        <button onclick="changeBlackSechme()">切换黑色方案</button>
+    </div>
+</body>
+
+</html>
+
+<script>
+	var app = new Vue({
+            el: '#component_container',
+            data: {
+                message: 'Hello Vue!'
+            },
+            mounted(){
+                console.log("mounted", this.$refs.ddd);
+            },
+            created(){
+                setTimeout(() => {
+                    console.log("created", this.$refs.ddd);
+                    createList(this.$refs.ddd)
+                }, 5000)
+            }
+        })
+        console.log(app.message,1111);
+        console.log(app.$refs.test,2222);
+        console.log(app.prototype,3333);
+		//GUI初始化
+		var mainBody = document.getElementById('mainBody');
+        GUI.init(mainBody);
+        GUI.setScheme("白色方案");
+        //SDK连接
+        function sdkConnect(){
+            //通知回调
+            NSDK.setNotificationCallback = function (event) {
+                console.log(event);
+            }
+            //用户id
+            let userid = 'test001';
+            //用户token
+            let token = 'testToken001';
+            //第三方认证环境码(pro:生产,dev:开发)
+            let authServer = 'dev';
+            let appKey = 'TESTL1_41';
+            let appSetcert = '$2a$10$U17mOxLf6OkH2YzIobYHzutac4x7Qk1sbcMNKToV43dABshYjxrk6';
+            //console.error("请配置登录参数");
+            //其他参数
+            let otherParams = {"deviceId": "XXX"};
+            NSDK.setEnvType(ENV_TYPE.SZSE_SIM);
+            NSDK.setSignCallback(()=>{
+                let promise = new Promise(function (resolve, reject) {
+                    let key = appKey;
+                    let Setcert = appSetcert;
+                    var timestamp = Date.parse(new Date()); 
+                    var rand = Math.floor(Math.random()*30000);
+                    let signModel = GCrypto.sign(key,timestamp,rand,Setcert);
+                    resolve(signModel);
+                });
+                return promise;
+            });
+
+            //调用连接函数
+            NSDK.connect(userid,token,authServer,otherParams);
+        }
+        sdkConnect();
+
+        var GComponent;
+        //创建行情报表
+        function createList(drawContainer){
+            var chart_div = drawContainer;
+            GComponent = GUI.createComponent(chart_div, UI_COMPONENT_TREND, UI_SCHEME_TYPE_WHITE);
+            //GComponent.changeScheme(UI_SCHEME_TYPE_WHITE);
+//设置代码参数
+//参数：证券代码
+            GComponent.setCode("000002.SZ");
+            //设置天数参数
+            //参数：分时图天数，为1为当日分时，2-10为多日分时
+            GComponent.setDays(1);
+            //设置叠加品种参数
+            //参数：叠加证券品种代码列表，空表示取消叠加
+            GComponent.setOverlyingCodes("");
+
+            GComponent.setShowAuction(false);
+            //提交参数设置
+            GComponent.commit();
+        }
+        //createList();
+        console.log("GComponent:",GComponent)
+        //设置codes列表
+        function setCodeList(){
+            //参数：代码字符串
+            //GComponent.setCodes("603899.SH,002678.SZ,605299.SH,603398.SH,002575.SZ,002301.SZ,002605.SZ,300329.SZ,300703.SZ,002348.SZ");
+            GComponent.setCode("000001.SZ");
+            //提交参数设置
+            GComponent.commit();
+        }
+
+        //变更为白色
+        function changeWhiteSechme(){
+            GComponent.changeScheme(UI_SCHEME_TYPE_WHITE);
+        }
+        //变更为黑色
+        function changeBlackSechme(){
+            GComponent.changeScheme(UI_SCHEME_TYPE_BLACK);
+        }
+
+        
+
+</script>
+
+
+
+<style>
+
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    -webkit-user-select:none;
+  -moz-user-select:none; 
+  -ms-user-select:none; 
+  user-select:none;
+}
+
+</style>
