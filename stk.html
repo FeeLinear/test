@@ -7,18 +7,20 @@
 </head>
 <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
 <!-- NSDK -->
-<script src="./sdkSZSE.js"></script>
+<script src="../../lib/sdkSZSE.js"></script>
 <!-- GUI PC端组件 -->
-<script src="./GUIPC.min_base.js"></script>
+<script src="../../lib/GUIPC.min_base.js"></script>
 <!-- GWeb框架 -->
-<script src="./NWeb.js"></script>
+<script src="../../lib/NWeb.js"></script>
 <!-- 通信桥接文件 -->
-<script src="./GLink_client.js"></script>
+<script src="../../lib/GLink_client.js"></script>
 
 
 <body  id='mainBody'>
+    <div id="box">
     <!-- 设置容器绝对定位 -->
-    <div id="component_container" ref="ddd" style="top: 0px;left: 0px;right: 0px;bottom: 250px;position: absolute;"></div>
+    <div id="component_container" ref="ddd" style="top: 0px;left: 0px;right: 50%;bottom: 250px;position: absolute;"></div>
+    <div id="component_container2" ref="ddd2" style="top: 0px;left: 50%;right: 0px;bottom: 250px;position: absolute;"></div>
     <!-- 操作区 -->
     <div id="test"  ref="test">{{message}}</div>
     <div style="left: 0px;right: 0px;bottom: 0px;height:25px;position: absolute;">
@@ -26,13 +28,14 @@
         <button onclick="changeWhiteSechme()">切换白色方案</button>
         <button onclick="changeBlackSechme()">切换黑色方案</button>
     </div>
+</div>
 </body>
 
 </html>
 
 <script>
 	var app = new Vue({
-            el: '#component_container',
+            el: '#box',
             data: {
                 message: 'Hello Vue!'
             },
@@ -43,12 +46,37 @@
                 setTimeout(() => {
                     console.log("created", this.$refs.ddd);
                     createList(this.$refs.ddd)
-                }, 5000)
+                    createDay(this.$refs.ddd2)
+                }, 1000)
             }
         })
-        console.log(app.message,1111);
-        console.log(app.$refs.test,2222);
-        console.log(app.prototype,3333);
+        function createDay(drawContainer){
+            window.mtkGComponent = window.GUI.createComponent(
+                drawContainer,
+                window.UI_COMPONENT_KLINE,
+                window.UI_SCHEME_TYPE_WHITE,
+            );
+            //this.mtkGComponent.page.destroy();
+            //参数： 方案类型，white 浅色方案、black 深色方案
+            //this.mtkGComponent.changeScheme(window.UI_SCHEME_TYPE_WHITE);
+            //设置代码参数
+            //参数：证券代码
+            window.mtkGComponent.setCode("000001.SZ");
+            //设置周期参数
+            //参数：K线周期
+            window.mtkGComponent.setPeriod(window.UI_KLINE_PERIOD_DAY);
+            //设置除权参数
+            //参数：除权状态，前复权-forward、后复权-backward、不复权-none
+            window.mtkGComponent.setDividendType(window.UI_KLINE_CQMODE_NONE);
+            //设置叠加品种参数
+            //参数：叠加证券品种代码列表，空表示取消叠加
+            window.mtkGComponent.setOverlyingCodes("");
+            //设置主图类型参数
+            //参数：主图类型，K线图-KLine、面积图-AreaLine、收盘线-CloseLine、美国线-AmericaLine、宝塔线-TownLine
+            window.mtkGComponent.setChartType(window.UI_KLINE_CHARTTYPE_KLINE);
+            //提交参数设置
+            window.mtkGComponent.commit();
+        }
 		//GUI初始化
 		var mainBody = document.getElementById('mainBody');
         GUI.init(mainBody);
